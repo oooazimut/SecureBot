@@ -1,10 +1,11 @@
 from datetime import datetime
 from typing import Annotated
 
+from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
-class Base(DeclarativeBase):
+class Base(AsyncAttrs, DeclarativeBase):
     pass
 
 
@@ -24,7 +25,7 @@ class Condition(Base):
         return f"Condition(id={self.condition_id!r}, zone={self.zone!r}, dttm={self.dttm!r}, condition={self.condition!r})"
 
 
-class Triggering(Base):
+class Sensor(Base):
     __tablename__ = "triggerings"
 
     trigg_id: Mapped[classic_id]
@@ -32,7 +33,7 @@ class Triggering(Base):
     dttm: Mapped[dttm]
 
     def __repr__(self) -> str:
-        return f"Triggering(id={self.trigg_id!r}, sensor={self.sensor!r}, dttm={self.dttm!r})"
+        return f"Sensor(id={self.trigg_id!r}, sensor={self.sensor!r}, dttm={self.dttm!r})"
 
 
 class User(Base):

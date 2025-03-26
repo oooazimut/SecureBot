@@ -7,23 +7,22 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
-START_REGISTER = 0
-REGISTER_COUNT = 1
+START_REGISTER = 16385
+REGISTER_COUNT = 12
+
+
+def convert_to_bin(num: int, zerofill: int) -> list[int]:
+    return list(map(int, bin(num)[2:].zfill(zerofill)[::-1]))
+
 
 def process_data(client: ModbusBaseClient, data: list):
-    result = dict()
-    result["water_level"] = 100 if 200 > data[0] > 100 else data[0]
-    pressure = data[2:4]
-    pressure.reverse()
-    result["pressure"] = client.convert_from_registers(
-        pressure,
-        data_type=client.DATATYPE.FLOAT32,
+    return dict(
+        sensors=convert_to_bin(data[0], zerofill=11)[:10],
+        conditions=data[2:],
     )
-    result["pump_condition"] = data[-1]
-    return result
 
 
-async def poll_registers(address, count) -> dict | None:
+async def poll_registers() -> dict | None:
     async with AsyncModbusTcpClient(
         settings.modbus.host,
         port=settings.modbus.port,
@@ -37,11 +36,15 @@ async def poll_registers(address, count) -> dict | None:
             return
 
         try:
-            data = await client.read_holding_registers(address, count=count)
+            data = await client.read_holding_registers(
+                START_REGISTER, count=REGISTER_COUNT
+            )
             if data.isError():
                 logger.error(f"Чтение регистров завершилось ошибкой: {data}")
                 return
+
             return process_data(client, data.registers)
+
         except ModbusException as exc:
             logger.error(f"Ошибка протокола Modbus: {exc}")
             return

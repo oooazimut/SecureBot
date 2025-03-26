@@ -46,7 +46,7 @@ async def main():
         trigger="interval",
         seconds=15,
         id="polling",
-        args=[db_pool, bot],
+        args=[db_pool],
     )
     storage = RedisStorage(
         Redis(),
