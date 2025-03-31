@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 import logging
 
 from aiogram import Bot, Dispatcher
@@ -13,6 +14,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
+from db.repo import clear_old
 import dialogs
 from config import settings
 from custom.media_storage import MediaIdStorage
@@ -44,9 +46,16 @@ async def main():
     scheduler.add_job(
         poll_and_save,
         trigger="interval",
-        seconds=15,
+        seconds=2,
         id="polling",
         args=[db_pool],
+    )
+    scheduler.add_job(
+        clear_old,
+        trigger="interval",
+        start_date=datetime.now(),
+        days=90,
+        id="clear_old",
     )
     storage = RedisStorage(
         Redis(),

@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.repo import get_with_filters
+from db.repo import get_by_date
 from service.plot import build_plot
 from states import MainSG
 
@@ -23,3 +23,6 @@ async def on_plot(clb: CallbackQuery, button, manager: DialogManager):
 async def on_date_clicked(event, widget, manager: DialogManager, clicked_date: date, /):
     manager.dialog_data["date"] = clicked_date
     await on_plot(event, widget, manager)
+
+async def on_clear(clb: CallbackQuery, button, manager: DialogManager):
+    pass

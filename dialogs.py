@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 from aiogram_dialog import Dialog, DialogManager, StartMode, Window
-from aiogram_dialog.widgets.kbd import Next, SwitchTo
+from aiogram_dialog.widgets.kbd import Button, Next, SwitchTo
 from aiogram_dialog.widgets.text import Const, Format
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio.session import AsyncSession
@@ -41,6 +41,7 @@ main_dialog = Dialog(
             on_click=handlers.on_plot,
         ),
         Next(Const("Выбрать дату")),
+        Button(Const('Удалить старые записи'), id='clear_old_values', on_click=handlers.on_clear),
         state=MainSG.main,
     ),
     Window(
