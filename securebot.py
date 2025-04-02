@@ -34,8 +34,14 @@ async def main():
         level=logging.WARNING,
         format="%(asctime)s %(levelname)s %(message)s",
     )
+    logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
     engine = create_async_engine(settings.sqlite_async_dsn, echo=False)
-    db_pool = async_sessionmaker(engine, expire_on_commit=False)
+    db_pool = async_sessionmaker(
+        engine,
+        expire_on_commit=False,
+        autoflush=False,
+        autocommit=False,
+    )
 
     bot = Bot(
         token=settings.bot_token.get_secret_value(),
@@ -46,15 +52,14 @@ async def main():
     scheduler.add_job(
         poll_and_save,
         trigger="interval",
-        seconds=2,
+        seconds=3,
         id="polling",
         args=[db_pool],
     )
     scheduler.add_job(
         clear_old,
-        trigger="interval",
-        start_date=datetime.now(),
-        days=90,
+        trigger="cron",
+        hour=0,
         id="clear_old",
     )
     storage = RedisStorage(

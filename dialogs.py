@@ -2,13 +2,15 @@ from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 from aiogram_dialog import Dialog, DialogManager, StartMode, Window
-from aiogram_dialog.widgets.kbd import Button, Next, SwitchTo
+from aiogram_dialog.widgets.kbd import Back, Button, Next, SwitchTo
+from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Const, Format
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 import handlers
 from custom.babel_calendar import CustomCalendar
+from config import settings
 from db.models import User
 from states import MainSG
 
@@ -19,7 +21,7 @@ start_router = Router()
 async def start_nandler(msg: Message, dialog_manager: DialogManager):
     session: AsyncSession = dialog_manager.middleware_data["session"]
     start_state = MainSG.passw
-    query = select(User).filter_by(id=msg.from_user.id)
+    query = select(User).filter_by(user_id=msg.from_user.id)
     user = await session.scalar(query)
     if user:
         start_state = MainSG.main
@@ -34,14 +36,12 @@ main_dialog = Dialog(
     ),
     Window(
         Const("Главное меню"),
-        SwitchTo(
+        Button(
             Const("График за сегодня"),
             id="today_plot",
-            state=MainSG.plot,
             on_click=handlers.on_plot,
         ),
         Next(Const("Выбрать дату")),
-        Button(Const('Удалить старые записи'), id='clear_old_values', on_click=handlers.on_clear),
         state=MainSG.main,
     ),
     Window(
@@ -51,6 +51,13 @@ main_dialog = Dialog(
     ),
     Window(
         Format("График за {dialog_data[date]}"),
+        StaticMedia(path=settings.plot_path),
+        SwitchTo(
+            Const("Выход"),
+            id="to_main",
+            state=MainSG.main,
+            on_click=handlers.clear_date,
+        ),
         state=MainSG.plot,
     ),
 )
