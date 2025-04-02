@@ -1,2 +1,42 @@
-async def build_plot(data):
-    pass
+from typing import TypedDict
+import matplotlib.dates as mdates
+from matplotlib import pyplot as plt
+from matplotlib.axes import Axes
+
+from config import settings
+from db.models import Condition, Sensor
+
+
+class DataDict(TypedDict):
+    sensors: list[Sensor]
+    conditions: list[Condition]
+
+
+def build_sensors(data: list[Sensor], ax: Axes):
+    x_arr = [i.sensor for i in data]
+    y_arr = [i.dttm for i in data]
+    ax.scatter(x_arr, y_arr, label="срабатывания")
+
+
+def build_conditions(data: list[Condition], ax: Axes):
+    x_arr = [i.zone + 0.2 for i in data]
+    y_arr = [i.dttm for i in data]
+    colors = ["red" if x.condition < 60 else "yellow" for x in data]
+    ax.scatter(x_arr, y_arr, c=colors, label="состояние связи")
+
+
+def build_plot(data: DataDict):
+    plt.clf()
+    fig, ax = plt.subplots()
+    build_sensors(data["sensors"], ax)
+    build_conditions(data["conditions"], ax)
+    date_format = mdates.DateFormatter("%H:%M")
+    ax.yaxis.set_major_locator(mdates.HourLocator(interval=1))
+    ax.yaxis.set_major_formatter(date_format)
+    ax.set_xticks(list(range(1, 11)))
+    ax.set_xlim(0, 11)
+    ax.grid(True)
+    # fig.autofmt_xdate()
+    plt.legend()
+    plt.savefig(settings.plot_path)
+    plt.close(fig)

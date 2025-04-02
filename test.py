@@ -30,7 +30,7 @@ async def main():
         connect_args={"check_same_thread": False},
     )
     db_pool = async_sessionmaker(engine, expire_on_commit=False)
-    await clear_old(db_pool)
+    await clear_old()
 
 
 if __name__ == "__main__":
